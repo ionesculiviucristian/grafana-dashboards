@@ -1,0 +1,187 @@
+{
+   "description": "Simple dashboard for viewing Docker container logs",
+   "panels": [
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "custom": {
+                  "drawStyle": "line",
+                  "fillOpacity": 10,
+                  "lineInterpolation": "smooth",
+                  "showPoints": "never",
+                  "stacking": {
+                     "mode": "normal"
+                  }
+               },
+               "unit": "logs/min"
+            }
+         },
+         "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "legend": {
+               "displayMode": "list",
+               "placement": "bottom"
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+               },
+               "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\", container=~\"$container\"} | detected_level=~\"$log_level\" |~ \"(?i)$search\" [1m]))",
+               "legendFormat": "{{compose_service}}"
+            }
+         ],
+         "title": "Log Volume",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 6
+         },
+         "id": 2,
+         "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": true,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+               },
+               "expr": "{compose_service=~\"$service\", container=~\"$container\"} | detected_level=~\"$log_level\" |~ \"(?i)$search\""
+            }
+         ],
+         "title": "Logs",
+         "type": "logs"
+      }
+   ],
+   "refresh": "10s",
+   "schemaVersion": 39,
+   "templating": {
+      "list": [
+         {
+            "datasource": {
+               "type": "loki",
+               "uid": "loki"
+            },
+            "includeAll": true,
+            "label": "Service",
+            "multi": true,
+            "name": "service",
+            "query": "label_values(compose_service)",
+            "refresh": 1,
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "loki",
+               "uid": "loki"
+            },
+            "includeAll": true,
+            "label": "Container",
+            "multi": true,
+            "name": "container",
+            "query": "label_values({compose_service=~\"$service\"}, container)",
+            "refresh": 1,
+            "type": "query"
+         },
+         {
+            "current": {
+               "selected": false,
+               "text": ".*",
+               "value": ".*"
+            },
+            "label": "Log level",
+            "multi": false,
+            "name": "log_level",
+            "options": [
+               {
+                  "selected": true,
+                  "text": ".*",
+                  "value": ".*"
+               },
+               {
+                  "selected": false,
+                  "text": "error",
+                  "value": "error"
+               },
+               {
+                  "selected": false,
+                  "text": "warn",
+                  "value": "warn"
+               },
+               {
+                  "selected": false,
+                  "text": "info",
+                  "value": "info"
+               },
+               {
+                  "selected": false,
+                  "text": "debug",
+                  "value": "debug"
+               },
+               {
+                  "selected": false,
+                  "text": "trace",
+                  "value": "trace"
+               }
+            ],
+            "query": ".* : .*,error : error,warn : warn,info : info,debug : debug,trace : trace",
+            "type": "custom"
+         },
+         {
+            "current": {
+               "selected": false,
+               "text": ".*",
+               "value": ".*"
+            },
+            "description": "Filter logs by text (case-insensitive, use .* for all)",
+            "label": "Search",
+            "name": "search",
+            "options": [
+               {
+                  "selected": true,
+                  "text": ".*",
+                  "value": ".*"
+               }
+            ],
+            "query": ".*",
+            "type": "textbox"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-6h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "Docker services logs"
+}
